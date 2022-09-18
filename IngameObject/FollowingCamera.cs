@@ -1,13 +1,11 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class FollowingCamera : MonoBehaviour
 {
-    PawnPlayer _player;
+    Pwn_Player _player;
     private void Awake()
     {
-        _player = GameObject.FindGameObjectWithTag("Player").GetComponent<PawnPlayer>();
+        _player = GameObject.FindObjectOfType<Pwn_Player>();
     }
 
     //카메라는 플레이어를 쫓아다닌다.

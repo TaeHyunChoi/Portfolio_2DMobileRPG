@@ -1,17 +1,19 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
-public static class PublicDefines
+public static class Defines
 {
+    public enum eGameState
+    {
+        Usual,
+        Battle
+    }
     public enum ePawnType
     {
         Player = 0,
-        Fellow1,
-        Fellow2,
+        Fellow,
         Monster
     }
-    public enum NowAction
+    public enum eAct
     { 
         IDLE = 0,
         MOVE,

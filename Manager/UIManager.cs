@@ -5,84 +5,114 @@ using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
 {
-    private static UIManager _uniqueInstance;
-    public static UIManager _instance { get { return _uniqueInstance; } set { _uniqueInstance = value; } }
+    public static UIManager instance { get; private set; }
 
-    [SerializeField] Transform _tfPartyStatus;
-    Slider[] _sldNowHP;
+    //버튼
+    public static Color DefaultColor { get; private set; }
+    public static Color PressedColor { get; private set; }
 
-    [SerializeField] Transform _tfSkillBttns;
-    Image[] _imgTimeCap;
-    Text[] _txtRemainTime;
+    [SerializeField] Transform tfPartyStatus;
+    Slider[] sldNowHP;
+
+
+    [SerializeField] Transform tfSkillBttns;
+    [SerializeField] Image[] imgMoveButton;
+    Image[] imgTimeCap;
+    Text[] txtRemainTime;
+
+    OptionWindow wndOption;
+    [SerializeField] GameObject prfOptionWND;
+
     private void Awake()
     {
-        _uniqueInstance = this;
         Init_UIManager();
-    }
-    private void Update()
-    {
-        DisplayTime();
-    }
 
-    //[초기화] UI 관련 정보 초기화
+        DefaultColor = new Color(0.5f, 0.5f, 0.5f, 0.5f);
+        PressedColor = new Color(1, 1, 1, 0.5f);
+    }
     private void Init_UIManager()
     {
-        _sldNowHP = new Slider[_tfPartyStatus.childCount];
-        for (int n = 0; n < _tfPartyStatus.childCount; n++)
+        sldNowHP = new Slider[tfPartyStatus.childCount];
+        for (int n = 0; n < tfPartyStatus.childCount; n++)
         {
-            _sldNowHP[n] = _tfPartyStatus.GetChild(n).GetChild(2).GetComponent<Slider>();
+            sldNowHP[n] = tfPartyStatus.GetChild(n).GetChild(2).GetComponent<Slider>();
         }
 
-        _imgTimeCap = new Image[_tfSkillBttns.childCount];
-        _txtRemainTime = new Text[_tfSkillBttns.childCount];
+        imgTimeCap = new Image[tfSkillBttns.childCount];
+        txtRemainTime = new Text[tfSkillBttns.childCount];
 
-        for (int m = 0; m < _tfSkillBttns.childCount; m++)
+        for (int m = 0; m < tfSkillBttns.childCount; m++)
         {
-            _imgTimeCap[m] = _tfSkillBttns.GetChild(m).GetChild(1).GetChild(0).GetComponent<Image>();
-            _txtRemainTime[m] = _tfSkillBttns.GetChild(m).GetChild(1).GetChild(1).GetComponent<Text>();
-        }
-    }
-
-    //[표시] 플레이어, 동료의 남은 HP 표시
-    private void DisplayTime()
-    {
-        for (int n = 0; n < IngameManager._instance._ltPartyPawns.Count; n++)
-        {
-            //현재 스킬 사용이 가능하다면
-            if (IngameManager._instance._ltPartyPawns[n]._skill.PossibleUse)
-            {
-                //Cap을 벗긴다.
-                _imgTimeCap[n].enabled = _txtRemainTime[n].enabled = false;
-            }
-            else    //사용이 불가하다면
-            {
-                //Cap을 씌우고
-                _imgTimeCap[n].enabled = true;
-                _txtRemainTime[n].enabled = true;
-
-                //남은 시간을 보여준다
-                int remainTime = (int)(IngameManager._instance._ltPartyPawns[n]._skill.fCondTime - IngameManager._instance._ltPartyPawns[n]._skill.fNowCoolTime) + 1;
-                _txtRemainTime[n].text = remainTime.ToString();
-            }
+            imgTimeCap[m] = tfSkillBttns.GetChild(m).GetChild(1).GetChild(0).GetComponent<Image>();
+            txtRemainTime[m] = tfSkillBttns.GetChild(m).GetChild(1).GetChild(1).GetComponent<Text>();
         }
     }
 
-    //[표시] 플레이어, 동료의 스킬 쿨타임 표시
-    public void DisplayPartyHP(PawnStats partyStats)
-    {
-        //인덱스 번호가 일치하지 않았다는거지...? 얘를 맞추면 되는건데.. How?
-        //PlayerParty의 n번째입니다! 라고 맞추면 좋을텐데
-        //아니면 다른 방법이 있다?
 
-        int sldIndex = (partyStats.Index - 1000) / 100;
-        _sldNowHP[sldIndex].value = (float)partyStats.NowHp / partyStats.MaxHp;
+    //버튼
+    public void DisplayMoveButton(bool[] _input = null)
+    {
+        for (int i = 0; i < _input.Length; i++)
+        {
+            imgMoveButton[i].color = _input[i] ? PressedColor : DefaultColor;
+        }
+    }
+    
+    private void Update()
+    {
+        DisplayTime(0, IngameManager.instance.player.Skill);
+        DisplayTime(1, IngameManager.instance.Fellows[0].Skill);
+        DisplayTime(2, IngameManager.instance.Fellows[1].Skill);
+    }
+    //스킬 쿨타임 표시
+    private void DisplayTime(int _index, PawnBase.PawnSkill _skill)
+    {
+        if (_skill.CoolTimeEnd())
+        {
+            imgTimeCap[_index].enabled = false;
+            txtRemainTime[_index].enabled = false;
+        }
+        else
+        {
+            imgTimeCap[_index].enabled = true;
+            txtRemainTime[_index].enabled = true;
+
+            int remainTime = (int)_skill.RemainCoolTime() + 1;
+            txtRemainTime[_index].text = remainTime.ToString();
+        }
+    }
+    //플레이어, 동료의 남은 HP 표시
+    public static void UpdateUI_HP(PawnBase _pawn)
+    {
+        if (_pawn.type == Defines.ePawnType.Player
+            || _pawn.type == Defines.ePawnType.Fellow)
+        {
+            int sldIndex = (_pawn.Stat.Index - 1000) / 100;
+            instance.sldNowHP[sldIndex].value = (float)_pawn.Stat.NowHp / _pawn.Stat.MaxHp;
+        }
+        else
+        {
+            Slider sld = _pawn.GetComponentInChildren<Slider>();
+            sld.value = (float)_pawn.Stat.NowHp / _pawn.Stat.MaxHp;
+        }
     }
 
-    //[표시] 몬스터의 남은 HP 표시
-    public void DisplayMonsterHP(Pawn monster)
+
+
+    //옵션 윈도우
+    public void OpenOptionWindow()
     {
-        float ratioHP = (float)monster.Stats.NowHp / monster.Stats.MaxHp; //아 맞다 얘네 int형이구나; 잊지 말자 형변환 캐스팅!
-        Slider sld = monster.transform.GetChild(1).GetChild(0).GetComponent<Slider>();
-        sld.value = ratioHP;
+        if (wndOption == null)
+        {
+            wndOption = Instantiate(prfOptionWND).GetComponent<OptionWindow>();
+        }
+        else
+        {
+            wndOption.gameObject.SetActive(true);
+        }
+    }
+    public void CloseWindow(Transform _tfWindow)
+    {
+        _tfWindow.gameObject.SetActive(false);
     }
 }

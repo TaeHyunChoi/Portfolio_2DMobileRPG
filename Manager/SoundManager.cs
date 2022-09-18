@@ -27,64 +27,74 @@ public enum EffectSoundIndex
 
 public class SoundManager : MonoBehaviour
 {
-    private static SoundManager _uniqueInstance;
-    public static SoundManager _instance { get { return _uniqueInstance; } set { _uniqueInstance = value; } }
+    public static SoundManager instance { get; private set; }
 
-    AudioSource _bgmPlayer;
-    [SerializeField] AudioClip[] _bgmClips;
+    private AudioSource bgmPlayer;
+    public AudioClip[] bgmClips;
 
-    AudioSource _effectPlayer;
-    [SerializeField] AudioClip[] _effectClips;
+    private AudioSource effectPlayer;
+    public AudioClip[] effectClips;
 
-    private float _bgmVolume;
-    private bool _bgmLoop;
-    private float _effectVolume;
+    private float maxBGMVal = 1f;
+    private bool bgmLoop;
+    private float maxEffectVal = 0.2f;
 
     //[초기화] 사운드 매니저 초기화
     public void Init_SoundManager()
     {
-        _uniqueInstance = this;
+        instance = this;
         DontDestroyOnLoad(this.gameObject);
 
         //Init Sound Player
-        _bgmPlayer = this.transform.GetComponent<AudioSource>();
-        _bgmVolume = 0.5f;
-        _effectVolume = 0.1f;
-        _bgmLoop = true;
+        bgmPlayer = this.transform.GetComponent<AudioSource>();
+        bgmLoop = true;
     }
 
     //[재생] 배경 음악 재생
-    public void PlaySound_BGM(BgmIndex type, bool mute = false)
+    public void PlaySound_BGM(BgmIndex _type, bool _mute = false)
     {
-        if (!mute)
+        if (!_mute)
         {
-            _bgmPlayer.clip = _bgmClips[(int)type];
-            _bgmPlayer.loop = _bgmLoop;
-            _bgmPlayer.mute = mute;
-            _bgmPlayer.volume = _bgmVolume;
-            _bgmPlayer.Play();
+            bgmPlayer.clip = bgmClips[(int)_type];
+            bgmPlayer.loop = bgmLoop;
+            bgmPlayer.mute = _mute;
+            bgmPlayer.volume = maxBGMVal * 0.5f;
+            bgmPlayer.Play();
 
         }
         else
         {
-            _bgmPlayer.Stop();
+            bgmPlayer.Stop();
         }
+    }
+    public void UpButton_BGM()
+    {
+        bgmPlayer.volume = (bgmPlayer.volume >= maxBGMVal) ? maxBGMVal : bgmPlayer.volume + (maxBGMVal * 0.01f);
+    }
+    public void UpButton_Effect()
+    {
+        effectPlayer.volume = (effectPlayer.volume >= maxEffectVal) ? maxEffectVal : effectPlayer.volume + (maxEffectVal * 0.01f);
+    }
+
+    public void Slider_BGM(int _input)
+    {
+        bgmPlayer.volume += (maxBGMVal * _input * 0.01f);
     }
 
     //[재생] 효과음 재생 오브젝트 생성
-    public GameObject PlaySound_Effect(EffectSoundIndex type, bool mute = false, bool isLoop = false) //이펙트 필요할 때마다 여기서 호출하는건가보네
+    public static GameObject PlaySound_Effect(EffectSoundIndex _type, bool _mute = false, bool _isLoop = false) //이펙트 필요할 때마다 여기서 호출하는건가보네
     {
-        if (!mute)
+        if (!_mute)
         {
-            _effectPlayer = new GameObject("EffectSoundPlayer").AddComponent<AudioSource>();
-            _effectPlayer.transform.parent = this.transform; //SoundManager 자식 오브젝트로 effectPlayer가 붙는다.
+            AudioSource _effectPlayer = new GameObject("EffectSoundPlayer").AddComponent<AudioSource>();
+            _effectPlayer.transform.parent = instance.transform; //SoundManager 자식 오브젝트로 effectPlayer가 붙는다.
 
             //초기화 정보를 _effectPlayer에게 전달한다.
             _effectPlayer.minDistance = 150;
-            _effectPlayer.clip = _effectClips[(int)type];
-            _effectPlayer.volume = _effectVolume;
-            _effectPlayer.mute = mute;
-            _effectPlayer.loop = mute;
+            _effectPlayer.clip = instance.effectClips[(int)_type];
+            _effectPlayer.volume = instance.maxEffectVal * 0.5f;
+            _effectPlayer.mute = _mute;
+            _effectPlayer.loop = _mute;
 
             //설정 다했으면 재생시킨다.
             _effectPlayer.Play();
