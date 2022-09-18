@@ -50,8 +50,9 @@ public class Pwn_Fellow : PawnBase
         //전투
         if (IngameManager.nowState == Defines.eGameState.Battle)
         {
-            //행동 딜레이 시간 갱신
+            //시간 갱신
             actElapsedTime += Time.deltaTime;       
+            Skill.UpdateCoolTime();
 
             //타겟 정보 갱신
             if (TargetPawn != null)

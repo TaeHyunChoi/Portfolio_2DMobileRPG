@@ -11,6 +11,8 @@ public class Pwn_Player : PawnBase
         }
 
         actElapsedTime += Time.deltaTime;
+        Skill.UpdateCoolTime();
+
         Move(out Vector2 _move);
         DefineState(InputManager.instance.inputAtk, _move);
     }

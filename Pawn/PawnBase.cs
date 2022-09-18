@@ -92,6 +92,14 @@ public class PawnBase : MonoBehaviour
         {
             return CondTime - NowCoolTime;
         }
+        public void ResetCoolTime()
+        {
+            NowCoolTime = 0;
+        }
+        public void UpdateCoolTime()
+        {
+            NowCoolTime += Time.deltaTime;
+        }
 
         //[발동 조건] 스탯 기준일 경우 확인
         public bool Check_CondStat(PawnStat stat)

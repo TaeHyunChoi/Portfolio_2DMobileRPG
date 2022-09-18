@@ -161,5 +161,8 @@ public class SkillManager
             //직접 초기화
             _monster.Init(Defines.ePawnType.Monster, 9007);
         }
+
+        //스킬 쿨타임 초기화
+        _user.Skill.ResetCoolTime();
     }
 }

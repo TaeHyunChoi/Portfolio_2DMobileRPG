@@ -50,6 +50,9 @@ public class Obj_SkillEffect : MonoBehaviour
             //인게임 매니저에게 데미지 계산을 요청
             IngameManager.CalcDamage(user, target, false);
 
+            //쿨타임 초기화
+            user.Skill.ResetCoolTime();
+
             //충돌 후 이펙트 삭제
             Destroy(this.gameObject, 0.2f);
         }

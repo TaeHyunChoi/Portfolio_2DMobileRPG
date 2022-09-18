@@ -25,21 +25,26 @@ public class Pwn_Monster : PawnBase
             return;
         }
 
-        actElapsedTime += Time.deltaTime;       //행동 딜레이 시간 갱신
+        //시간 갱신
+        actElapsedTime += Time.deltaTime;
+        Skill.UpdateCoolTime();
 
-        if (TargetPawn != null)                     //공격 대상 설정
+        //공격 대상 및 위치 설정
+        if (TargetPawn != null)                     
         {
             TargetingPlayers();
         }
         goalPos = TargetPawn.transform.position;
-        inputAct = AI_SelectAct();
 
+        //행동 결정
+        inputAct = AI_SelectAct();
         if (nowAct != inputAct                  //행동 변화가 생기면 
             && actElapsedTime < actDelayTime)   //행동 간 딜레이를 둔다.
         {
             return;
         }
 
+        //행동 실행
         AI_Act(goalPos);
     }
     private void LateUpdate()
